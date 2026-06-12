@@ -2,11 +2,18 @@
 
 import type { Deal } from "@/app/types/deal";
 import { Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import type { ChangeEvent } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { CategoryFilterButton } from "./CategoryFilterButton";
 import { DealCard } from "./DealCard";
-import { DealFilter } from "./dealFilter";
+import {
+  DealFilter,
+  MAX_DEAL_QUERY_LENGTH,
+  DealFilterParam,
+  normalizeDealQuery,
+  resolveDealCategory,
+} from "./dealFilter";
 
 type DealFiltersProps = {
   deals: Deal[];
@@ -17,10 +24,14 @@ function getCategories(deals: Deal[]): string[] {
 }
 
 export function DealFilters({ deals }: DealFiltersProps) {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>(DealFilter.AllCategories);
-
+  const searchParams = useSearchParams();
   const categories = useMemo(() => getCategories(deals), [deals]);
+  const query = normalizeDealQuery(searchParams.get(DealFilterParam.Query));
+  const category = resolveDealCategory(
+    searchParams.get(DealFilterParam.Category),
+    categories,
+  );
+
   const visibleDeals = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
@@ -37,21 +48,60 @@ export function DealFilters({ deals }: DealFiltersProps) {
     });
   }, [category, deals, query]);
 
-  const handleCategorySelect = useCallback((selectedCategory: string) => {
-    setCategory(selectedCategory);
-  }, []);
+  const createFilterUrl = useCallback(
+    (nextQuery: string, nextCategory: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (nextQuery.trim()) {
+        params.set(DealFilterParam.Query, nextQuery);
+      } else {
+        params.delete(DealFilterParam.Query);
+      }
+
+      if (nextCategory !== DealFilter.AllCategories) {
+        params.set(DealFilterParam.Category, nextCategory);
+      } else {
+        params.delete(DealFilterParam.Category);
+      }
+
+      const queryString = params.toString();
+
+      return queryString ? `?${queryString}` : window.location.pathname;
+    },
+    [searchParams],
+  );
+
+  const handleCategorySelect = useCallback(
+    (selectedCategory: string) => {
+      window.history.pushState(
+        null,
+        "",
+        createFilterUrl(query, selectedCategory),
+      );
+    },
+    [createFilterUrl, query],
+  );
 
   const handleQueryChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      setQuery(event.target.value);
+      const nextQuery = normalizeDealQuery(event.target.value);
+
+      window.history.replaceState(
+        null,
+        "",
+        createFilterUrl(nextQuery, category),
+      );
     },
-    [],
+    [category, createFilterUrl],
   );
 
   const handleClearFilters = useCallback(() => {
-    setQuery("");
-    setCategory(DealFilter.AllCategories);
-  }, []);
+    window.history.pushState(
+      null,
+      "",
+      createFilterUrl("", DealFilter.AllCategories),
+    );
+  }, [createFilterUrl]);
 
   const hasActiveFilters =
     query.length > 0 || category !== DealFilter.AllCategories;
@@ -92,6 +142,7 @@ export function DealFilters({ deals }: DealFiltersProps) {
                 type="search"
                 value={query}
                 onChange={handleQueryChange}
+                maxLength={MAX_DEAL_QUERY_LENGTH}
                 placeholder="Search the collection"
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--muted)]"
               />
