@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Community Deals
 
-## Getting Started
+A small Next.js App Router demo that models a Digt-style community deals/catalog experience.
 
-First, run the development server:
+## Why this project exists
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+I built this project to practice a modern frontend stack relevant to product/e-commerce platforms:
+Next.js App Router, React, TypeScript strict mode, Tailwind, typed API boundaries, Zod validation, and DTO-to-UI mapping.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Current features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Server-rendered deals page
+- DummyJSON products API integration
+- Zod validation for untrusted API data
+- DTO-to-UI model mapping
+- Route-level loading and error states
+- Reusable DealCard component
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture notes
 
-## Learn More
+- `app/deals/page.tsx` fetches initial catalog data on the server.
+- `app/lib/deals.ts` owns API access, validation, and mapping.
+- `app/types/deal.ts` defines DTO schemas and UI types.
+- `DealCard` is intentionally presentational.
 
-To learn more about Next.js, take a look at the following resources:
+## Next steps
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Add category/search filters
+- Add URL search params
+- Add Zustand for shared client UI state
+- Add TanStack Query for interactive client-side server state
+- Add Formik + Zod admin form
+- Add Jest/React Testing Library tests
