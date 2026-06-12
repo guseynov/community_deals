@@ -23,7 +23,7 @@ export type Deal = {
   id: number;
   title: string;
   description: string;
-  price: number;
+  price: string;
   category: string;
   imageUrl: string;
 };

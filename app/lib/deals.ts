@@ -10,7 +10,7 @@ export function mapProductDtoToDeal(productDto: ProductDto): Deal {
     id: productDto.id,
     title: productDto.title,
     description: productDto.description,
-    price: productDto.price,
+    price: productDto.price.toFixed(2),
     category: productDto.category,
     imageUrl: productDto.thumbnail,
   };

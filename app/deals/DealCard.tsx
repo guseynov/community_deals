@@ -1,31 +1,58 @@
+"use client";
+
 import type { Deal } from "@/app/types/deal";
+import clsx from "clsx";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { useCallback, useState } from "react";
 
 type DealCardProps = {
   deal: Deal;
+  priority?: boolean;
 };
 
-export function DealCard({ deal }: DealCardProps) {
-  const { title, description, price, category, imageUrl } = deal || {};
+export function DealCard({ deal, priority = false }: DealCardProps) {
+  const { title, description, price, category, imageUrl } = deal;
+  const [loading, setLoading] = useState(true);
+  const handleImageLoad = useCallback(() => {
+    setLoading(false);
+  }, []);
 
   return (
-    <article className="rounded-lg border p-4 shadow-sm">
-      <Image
-        src={imageUrl}
-        alt={title}
-        width={400}
-        height={300}
-        className="mb-4 h-40 w-full rounded object-cover"
-      />
-
-      <h2 className="font-medium">{title}</h2>
-      <p className="mt-2 text-sm text-gray-600">{description}</p>
-
-      <div className="mt-4 flex items-center justify-between">
-        <span className="font-semibold">{price}</span>
-        <span className="rounded bg-gray-100 px-2 py-1 text-xs">
+    <article className="deal-card group flex min-w-0 flex-col">
+      <div className="relative aspect-[4/4.2] overflow-hidden rounded-[1.75rem] border border-black/[0.06] bg-[var(--surface)]">
+        <div className="absolute left-4 top-4 z-10 rounded-full border border-black/10 bg-[color:rgba(255,255,255,0.78)] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.1em] backdrop-blur-md">
           {category}
-        </span>
+        </div>
+        <div className={clsx("absolute inset-0", loading && "animate-pulse bg-black/[0.04]")}>
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            priority={priority}
+            onLoad={handleImageLoad}
+            className={clsx(
+              "object-contain p-8 transition duration-500 ease-out group-hover:scale-[1.04]",
+              loading ? "opacity-0" : "opacity-100",
+            )}
+          />
+        </div>
+        <div className="absolute bottom-4 right-4 grid size-10 translate-y-2 place-items-center rounded-full bg-[var(--ink)] text-white opacity-0 shadow-lg transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover:translate-x-0.5"
+            strokeWidth={1.5}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col px-1 pt-5">
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-base font-semibold leading-snug tracking-[-0.015em]">{title}</h2>
+          <p className="shrink-0 font-mono text-sm font-semibold">${price}</p>
+        </div>
+        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--muted)]">{description}</p>
       </div>
     </article>
   );
