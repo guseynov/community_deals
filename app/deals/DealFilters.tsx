@@ -15,6 +15,8 @@ import {
   normalizeDealQuery,
   resolveDealCategory,
 } from "./dealFilter";
+import LayoutSelector from "../components/LayoutSelector";
+import { LayoutModel, TStore, useShopStore } from "./store";
 
 type DealFiltersProps = {
   deals: Deal[];
@@ -142,6 +144,9 @@ export function DealFilters({ deals }: DealFiltersProps) {
     visibleDeals.length === 1 ? "find" : "finds"
   } ${resultsContext}`;
 
+  const shopLayout = useShopStore((state: TStore) => state.layout);
+  const setShopLayout = useShopStore((state: TStore) => state.setLayout);
+
   return (
     <section aria-label="Deal collection">
       <div className="sticky top-0 z-20 border-y border-black/10 bg-[color:rgba(245,242,234,0.92)] backdrop-blur-xl">
@@ -164,19 +169,24 @@ export function DealFilters({ deals }: DealFiltersProps) {
                 />
               ))}
             </div>
-            <label className="search-field">
-              <span className="sr-only">Search deals</span>
-              <Search aria-hidden="true" className="size-5" strokeWidth={1.5} />
-              <input
-                ref={searchInputRef}
-                type="search"
-                defaultValue={query}
-                onChange={handleSearchInputChange}
-                maxLength={MAX_DEAL_QUERY_LENGTH}
-                placeholder="Search the collection"
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--muted)]"
-              />
-            </label>
+
+            <div className="flex items-center gap-4">
+              <LayoutSelector layout={shopLayout} onChange={setShopLayout} />
+
+              <label className="search-field">
+                <span className="sr-only">Search deals</span>
+                <Search aria-hidden="true" strokeWidth={1.5} />
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  defaultValue={query}
+                  onChange={handleSearchInputChange}
+                  maxLength={MAX_DEAL_QUERY_LENGTH}
+                  placeholder="Search the collection"
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--muted)]"
+                />
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -206,7 +216,13 @@ export function DealFilters({ deals }: DealFiltersProps) {
         </div>
 
         {visibleDeals.length > 0 ? (
-          <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div
+            className={
+              shopLayout === LayoutModel.Comfortable
+                ? "grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                : "grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            }
+          >
             {visibleDeals.map((deal, index) => (
               <DealCard key={deal.id} deal={deal} priority={index < 4} />
             ))}

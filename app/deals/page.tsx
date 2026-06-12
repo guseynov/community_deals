@@ -21,11 +21,6 @@ export default async function DealsPage() {
           </span>
           Common Good
         </Link>
-        <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
-          <span className="hidden sm:inline">Curated for the community</span>
-          <span className="size-1 rounded-full bg-[var(--accent)]" />
-          <span>June edit</span>
-        </div>
       </nav>
 
       <header className="site-shell pb-10 pt-14 sm:pb-14 sm:pt-20">

@@ -88,7 +88,10 @@ input:focus-visible {
   padding-inline: 1.35rem;
   font-size: 0.875rem;
   font-weight: 650;
-  transition: transform 180ms ease, background-color 180ms ease, color 180ms ease;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 .button-primary {
@@ -149,12 +152,11 @@ input:focus-visible {
 
 .search-field {
   display: flex;
-  min-height: 2.75rem;
-  min-width: min(100%, 18rem);
   align-items: center;
   gap: 0.65rem;
   border-bottom: 1px solid rgb(32 37 31 / 0.25);
   color: var(--muted);
+  height: 32px;
 }
 
 .search-field:focus-within {
