@@ -4,7 +4,8 @@ import type { Deal } from "@/app/types/deal";
 import { Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import type { ChangeEvent } from "react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { debounce } from "throttle-debounce";
 import { CategoryFilterButton } from "./CategoryFilterButton";
 import { DealCard } from "./DealCard";
 import {
@@ -25,6 +26,7 @@ function getCategories(deals: Deal[]): string[] {
 
 export function DealFilters({ deals }: DealFiltersProps) {
   const searchParams = useSearchParams();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const categories = useMemo(() => getCategories(deals), [deals]);
   const query = normalizeDealQuery(searchParams.get(DealFilterParam.Query));
   const category = resolveDealCategory(
@@ -71,21 +73,8 @@ export function DealFilters({ deals }: DealFiltersProps) {
     [searchParams],
   );
 
-  const handleCategorySelect = useCallback(
-    (selectedCategory: string) => {
-      window.history.pushState(
-        null,
-        "",
-        createFilterUrl(query, selectedCategory),
-      );
-    },
-    [createFilterUrl, query],
-  );
-
   const handleQueryChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const nextQuery = normalizeDealQuery(event.target.value);
-
+    (nextQuery: string) => {
       window.history.replaceState(
         null,
         "",
@@ -95,13 +84,53 @@ export function DealFilters({ deals }: DealFiltersProps) {
     [category, createFilterUrl],
   );
 
+  const debouncedHandleQueryChange = useMemo(
+    () => debounce(300, handleQueryChange),
+    [handleQueryChange],
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedHandleQueryChange.cancel();
+    };
+  }, [debouncedHandleQueryChange]);
+
+  const handleSearchInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      debouncedHandleQueryChange(normalizeDealQuery(event.currentTarget.value));
+    },
+    [debouncedHandleQueryChange],
+  );
+
+  const handleCategorySelect = useCallback(
+    (selectedCategory: string) => {
+      const currentQuery = normalizeDealQuery(
+        searchInputRef.current?.value ?? query,
+      );
+
+      debouncedHandleQueryChange.cancel();
+      window.history.pushState(
+        null,
+        "",
+        createFilterUrl(currentQuery, selectedCategory),
+      );
+    },
+    [createFilterUrl, debouncedHandleQueryChange, query],
+  );
+
   const handleClearFilters = useCallback(() => {
+    debouncedHandleQueryChange.cancel();
+
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
+    }
+
     window.history.pushState(
       null,
       "",
       createFilterUrl("", DealFilter.AllCategories),
     );
-  }, [createFilterUrl]);
+  }, [createFilterUrl, debouncedHandleQueryChange]);
 
   const hasActiveFilters =
     query.length > 0 || category !== DealFilter.AllCategories;
@@ -139,9 +168,10 @@ export function DealFilters({ deals }: DealFiltersProps) {
               <span className="sr-only">Search deals</span>
               <Search aria-hidden="true" className="size-5" strokeWidth={1.5} />
               <input
+                ref={searchInputRef}
                 type="search"
-                value={query}
-                onChange={handleQueryChange}
+                defaultValue={query}
+                onChange={handleSearchInputChange}
                 maxLength={MAX_DEAL_QUERY_LENGTH}
                 placeholder="Search the collection"
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--muted)]"
